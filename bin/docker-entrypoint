@@ -1,6 +1,13 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
+# If SOLID_QUEUE_WORKER is set, start the background job processor instead.
+# This lets the same Docker image serve as both the web server and the worker,
+# controlled by an env var (set in render.yaml for the worker service).
+if [ "${SOLID_QUEUE_WORKER}" = "true" ]; then
+  exec bundle exec rails solid_queue:start
+fi
+
+# If running the rails server then create or migrate existing database.
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
 fi

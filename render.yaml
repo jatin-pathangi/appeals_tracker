@@ -22,9 +22,10 @@ services:
   - type: worker
     name: appeals-tracker-worker
     runtime: docker
-    plan: starter
-    startCommand: bundle exec rails solid_queue:start
-    envVars: *app_env  # same env as the web service
+    envVars:
+      - *app_env
+      - key: SOLID_QUEUE_WORKER
+        value: "true"
 
 databases:
   - name: appeals_tracker
