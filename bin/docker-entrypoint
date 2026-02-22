@@ -1,9 +1,14 @@
 #!/bin/bash -e
 
 # If SOLID_QUEUE_WORKER is set, start the background job processor instead.
-# This lets the same Docker image serve as both the web server and the worker,
-# controlled by an env var (set in render.yaml for the worker service).
 if [ "${SOLID_QUEUE_WORKER}" = "true" ]; then
+  # SolidQueue tables live in db/queue_schema.rb (not migrations), so db:migrate
+  # won't create them. Load the schema only if tables are missing.
+  bundle exec rails runner "
+    unless ActiveRecord::Base.connection.table_exists?('solid_queue_jobs')
+      load Rails.root.join('db/queue_schema.rb')
+    end
+  "
   exec bundle exec rails solid_queue:start
 fi
 
