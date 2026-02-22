@@ -1,0 +1,17 @@
+default: &default
+  dispatchers:
+    - polling_interval: 1
+      batch_size: 500
+      recurring_tasks_interval: 300   # re-check recurring tasks every 5 minutes
+
+  workers:
+    - queues: [ default ]
+      threads: 3
+      polling_interval: 1
+
+    - queues: [ fetchers ]
+      threads: 2
+      polling_interval: 5             # fetcher jobs are slow (HTTP + Gemini); poll less aggressively
+
+production:
+  <<: *default
