@@ -41,16 +41,21 @@ source.update!(config: source.config.merge("max_pages" => MAX_PAGES))
 
 if DRY_RUN
   # --- Dry run: just test Gemini on the most recent stored meeting ---
-  meeting = source.council_meetings.where(status: "processed").order(meeting_date: :desc).first
+  meeting = source.council_meetings.find_by(meeting_date: "2026-02-03")
   unless meeting
-    puts "ERROR: No processed meetings found. Run without DRY_RUN=true first."
+    puts "ERROR: No meeting found for 2026-02-03. Run without DRY_RUN=true first to fetch it."
     exit 1
   end
 
-  puts "\n[DRY RUN] Testing GeminiAgendaProcessor on #{meeting.meeting_date}..."
+  puts "\n[DRY RUN] Testing GeminiAgendaProcessor on #{meeting.meeting_date} (#{meeting.agenda_pdf.blob.byte_size / 1024}KB PDF)..."
   appeals = GeminiAgendaProcessor.new(meeting).process
   puts "  Appeals extracted: #{appeals.count}"
-  appeals.each { |a| puts "    • [#{a.grounds_category}] #{a.project_address || a.project_name} — #{a.appellant_name}" }
+  appeals.each do |a|
+    puts "  • [#{a.grounds_category}] #{a.project_address || a.project_name}"
+    puts "    Appellant: #{a.appellant_name}"
+    puts "    Description: #{a.description}"
+    puts
+  end
 
 else
   # --- Full run: fetch + process ---

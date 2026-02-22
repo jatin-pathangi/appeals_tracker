@@ -1,10 +1,426 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+/* ============================================================
+   Appeals Tracker — Global Design System
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --border: #30363d;
+  --border-light: #21262d;
+  --text: #e6edf3;
+  --text-muted: #7d8590;
+  --text-subtle: #484f58;
+  --accent: #58a6ff;
+  --accent-dim: #1f4068;
+  --green: #3fb950;
+  --green-dim: #1e3a23;
+  --yellow: #d29922;
+  --yellow-dim: #3a2e0a;
+  --red: #f85149;
+  --red-dim: #3d1a19;
+  --purple: #bc8cff;
+  --purple-dim: #2e1f5e;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --transition: 150ms ease;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Header / Nav
+   ============================================================ */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.app-logo .logo-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+/* ============================================================
+   City Selector
+   ============================================================ */
+.city-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.city-bar label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.city-select {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 2rem 0.45rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: border-color var(--transition);
+}
+
+.city-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+/* ============================================================
+   Main Layout
+   ============================================================ */
+.page-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.count-badge {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.2rem 0.65rem;
+}
+
+/* ============================================================
+   Appeals Table
+   ============================================================ */
+.appeals-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Column grid shared by header row and summary rows */
+.appeals-thead,
+.appeal-row summary {
+  display: grid;
+  grid-template-columns: 1fr 130px 180px 200px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+}
+
+.appeals-thead {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-left: 2.5rem;
+  /* align with rows that have the expand icon */
+}
+
+/* Appeal row — clickable summary */
+.appeal-row summary {
+  cursor: pointer;
+  list-style: none;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.appeal-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.appeal-row summary:hover {
+  background: var(--surface-2);
+}
+
+.appeal-row[open] summary {
+  background: var(--surface-2);
+  border-bottom-color: var(--border);
+}
+
+.appeal-row[open] .expand-icon {
+  transform: rotate(90deg);
+}
+
+.expand-icon {
+  color: var(--text-subtle);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+  margin-right: 0.4rem;
+}
+
+.col-address {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.addr-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.col-date {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.col-category {
+  display: flex;
+  align-items: center;
+}
+
+.col-appellant {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Grounds badge */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-ceqa {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(63, 185, 80, 0.2);
+}
+
+.badge-design_review {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(88, 166, 255, 0.2);
+}
+
+.badge-use_permit {
+  background: var(--yellow-dim);
+  color: var(--yellow);
+  border: 1px solid rgba(210, 153, 34, 0.2);
+}
+
+.badge-neighborhood_impact {
+  background: var(--purple-dim);
+  color: var(--purple);
+  border: 1px solid rgba(188, 140, 255, 0.2);
+}
+
+.badge-procedural {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(248, 81, 73, 0.2);
+}
+
+.badge-other {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* Expand detail panel */
+.appeal-detail {
+  padding: 1.25rem 1.25rem 1.25rem 3rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-light);
+  animation: slideDown 150ms ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 2rem;
+}
+
+.detail-field label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-subtle);
+  margin-bottom: 0.3rem;
+}
+
+.detail-field p {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.detail-field.full {
+  grid-column: 1 / -1;
+}
+
+/* Empty state */
+.empty-state {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state .empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+
+.empty-state p {
+  font-size: 0.9375rem;
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 2rem;
+  padding-bottom: 1rem;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.page-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.page-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+  cursor: default;
+}
+
+.page-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.page-info {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0 0.5rem;
+}

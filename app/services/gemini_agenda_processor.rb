@@ -26,6 +26,7 @@ class GeminiAgendaProcessor
       "item_number": <integer or null>,
       "title": "<short agenda item title>",
       "description": "<full text of the agenda item>",
+      "appeal_description": "<2-4 sentence plain-English summary: what is being appealed, who is appealing, and the main grounds. Write this for a general audience with no technical jargon>",
       "project_name": "<name of the housing project, or null>",
       "project_address": "<street address, or null>",
       "apn": "<Assessor Parcel Number, or null>",
@@ -146,6 +147,7 @@ class GeminiAgendaProcessor
       appellant_name: data["appellant_name"],
       grounds_category: data["grounds_category"],
       grounds_description: data["grounds_description"],
+      description: data["appeal_description"],
       status: "filed",
       filed_date: @meeting.meeting_date
     )

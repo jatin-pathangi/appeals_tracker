@@ -1,0 +1,150 @@
+<%# Helper for grounds badge CSS class %>
+<% def badge_class(cat)
+  case cat
+  when "CEQA"                then "badge-ceqa"
+  when "design_review"       then "badge-design_review"
+  when "use_permit"          then "badge-use_permit"
+  when "neighborhood_impact" then "badge-neighborhood_impact"
+  when "procedural"          then "badge-procedural"
+  else "badge-other"
+  end
+end %>
+
+<header class="app-header">
+  <a href="/" class="app-logo">
+    <div class="logo-icon">⚖</div>
+    Appeals Tracker
+  </a>
+</header>
+
+<div class="city-bar">
+  <%= form_with url: root_path, method: :get, data: { turbo: false } do |f| %>
+    <%= f.label :city_id, "City" %>
+    <%= f.select :city_id,
+          @cities.map { |c| [c.name, c.id] },
+          { selected: @selected_city&.id },
+          class: "city-select",
+          onchange: "this.form.submit()" %>
+  <% end %>
+</div>
+
+<main class="page-main">
+  <div class="page-header">
+    <h1 class="page-title">
+      Housing Appeals<% if @selected_city %> &mdash; <%= @selected_city.name %><% end %>
+    </h1>
+    <% if @total_count > 0 %>
+      <span class="count-badge"><%= @total_count %> total</span>
+    <% end %>
+  </div>
+
+  <div class="appeals-table-wrap">
+    <div class="appeals-thead">
+      <span class="col-address">Address</span>
+      <span class="col-date">Date Filed</span>
+      <span class="col-category">Category</span>
+      <span class="col-appellant">Appellant</span>
+    </div>
+
+    <% if @appeals.any? %>
+      <% @appeals.each do |appeal| %>
+        <details class="appeal-row" id="appeal-<%= appeal.id %>">
+          <summary>
+            <svg class="expand-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="col-address addr-text">
+              <%= appeal.project_address.presence || appeal.project_name.presence || "Address unknown" %>
+            </span>
+            <span class="col-date">
+              <%= appeal.filed_date&.strftime("%-d %b %Y") || "—" %>
+            </span>
+            <span class="col-category">
+              <span class="badge <%= badge_class(appeal.grounds_category) %>">
+                <%= appeal.grounds_category&.humanize || "Other" %>
+              </span>
+            </span>
+            <span class="col-appellant">
+              <%= appeal.appellant_name.presence || "—" %>
+            </span>
+          </summary>
+
+          <div class="appeal-detail">
+            <div class="detail-grid">
+              <% if appeal.description.present? %>
+                <div class="detail-field full">
+                  <label>Summary</label>
+                  <p><%= appeal.description %></p>
+                </div>
+              <% end %>
+
+              <% if appeal.grounds_description.present? %>
+                <div class="detail-field full">
+                  <label>Grounds</label>
+                  <p><%= appeal.grounds_description %></p>
+                </div>
+              <% end %>
+
+              <% if appeal.reference_number.present? %>
+                <div class="detail-field">
+                  <label>Reference Number</label>
+                  <p><%= appeal.reference_number %></p>
+                </div>
+              <% end %>
+
+              <% if appeal.apn.present? %>
+                <div class="detail-field">
+                  <label>APN</label>
+                  <p><%= appeal.apn %></p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </details>
+      <% end %>
+
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-icon">🏛</div>
+        <p>
+          <% if @selected_city %>
+            No housing appeals found for <%= @selected_city.name %> yet.
+          <% else %>
+            No cities available. Set up an AgendaSource to start fetching.
+          <% end %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Pagination %>
+  <% if @total_pages > 1 %>
+    <nav class="pagination" aria-label="Pages">
+      <%= link_to "←", root_path(city_id: @selected_city&.id, page: @current_page - 1),
+            class: "page-btn #{"disabled" if @current_page <= 1}" %>
+
+      <% first_page = [@current_page - 2, 1].max
+         last_page  = [@current_page + 2, @total_pages].min %>
+
+      <% if first_page > 1 %>
+        <%= link_to "1", root_path(city_id: @selected_city&.id, page: 1), class: "page-btn" %>
+        <span class="page-info">…</span>
+      <% end %>
+
+      <% (first_page..last_page).each do |p| %>
+        <%= link_to p, root_path(city_id: @selected_city&.id, page: p),
+              class: "page-btn #{"active" if p == @current_page}" %>
+      <% end %>
+
+      <% if last_page < @total_pages %>
+        <span class="page-info">…</span>
+        <%= link_to @total_pages, root_path(city_id: @selected_city&.id, page: @total_pages), class: "page-btn" %>
+      <% end %>
+
+      <%= link_to "→", root_path(city_id: @selected_city&.id, page: @current_page + 1),
+            class: "page-btn #{"disabled" if @current_page >= @total_pages}" %>
+
+      <span class="page-info">Page <%= @current_page %> of <%= @total_pages %></span>
+    </nav>
+  <% end %>
+</main>
