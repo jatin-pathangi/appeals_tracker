@@ -2,7 +2,7 @@ services:
   - type: web
     name: appeals-tracker
     runtime: docker
-    plan: free
+    plan: starter
     healthCheckPath: /up
     preDeployCommand: bundle exec rails db:migrate
     envVars:
