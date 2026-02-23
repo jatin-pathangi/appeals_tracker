@@ -163,7 +163,7 @@ body {
 }
 
 /* ============================================================
-   Appeals Table
+   Appeals Table — two-level grouped layout
    ============================================================ */
 .appeals-table-wrap {
   background: var(--surface);
@@ -173,17 +173,13 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Column grid shared by header row and summary rows */
-.appeals-thead,
-.appeal-row summary {
-  display: grid;
-  grid-template-columns: 28px 1fr 130px 180px 180px;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-}
-
+/* ── Outer header (address / most-recent / count) ── */
 .appeals-thead {
+  display: grid;
+  grid-template-columns: 1fr 130px 48px;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem 0.75rem 2.75rem;
+  /* 2.75rem = icon(28px) + gap */
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
   font-size: 0.75rem;
@@ -191,41 +187,42 @@ body {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  /* span icon column + address column with just ADDRESS label */
-  grid-template-columns: 1fr 130px 180px 180px;
-  padding-left: 1.25rem;
 }
 
-/* Appeal row — clickable summary */
-.appeal-row summary {
-  cursor: pointer;
-  list-style: none;
-  transition: background var(--transition);
+/* ── Address group row ── */
+.appeal-group {
   border-bottom: 1px solid var(--border-light);
 }
 
-.appeal-row summary::-webkit-details-marker {
+.appeal-group:last-child {
+  border-bottom: none;
+}
+
+.appeal-group>summary {
+  display: grid;
+  grid-template-columns: 28px 1fr 130px 48px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  transition: background var(--transition);
+}
+
+.appeal-group>summary::-webkit-details-marker {
   display: none;
 }
 
-.appeal-row summary:hover {
+.appeal-group>summary:hover {
   background: var(--surface-2);
 }
 
-.appeal-row[open] summary {
+.appeal-group[open]>summary {
   background: var(--surface-2);
-  border-bottom-color: var(--border);
 }
 
-.appeal-row[open] .expand-icon {
+.appeal-group[open]>summary .expand-icon {
   transform: rotate(90deg);
-}
-
-.expand-icon {
-  color: var(--text-subtle);
-  transition: transform 200ms ease;
-  flex-shrink: 0;
-  margin-right: 0.4rem;
 }
 
 .col-address {
@@ -243,23 +240,108 @@ body {
   color: var(--text);
 }
 
-.col-date {
+.col-recent-date {
   font-size: 0.875rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
-.col-category {
+.col-group-count {
   display: flex;
   align-items: center;
 }
 
-.col-appellant {
+.group-count-pill {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.15rem 0.55rem;
+  white-space: nowrap;
+}
+
+/* ── Group body (sub-appeals) ── */
+.group-body {
+  background: var(--bg);
+  border-top: 1px solid var(--border-light);
+}
+
+/* Sub-column header */
+.sub-thead {
+  display: grid;
+  grid-template-columns: 28px 130px 180px 1fr;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem 0.5rem 2.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* ── Individual sub-appeal ── */
+.sub-appeal {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sub-appeal:last-child {
+  border-bottom: none;
+}
+
+.sub-appeal>summary {
+  display: grid;
+  grid-template-columns: 28px 130px 180px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.25rem 0.7rem 2.25rem;
+  cursor: pointer;
+  list-style: none;
+  transition: background var(--transition);
+}
+
+.sub-appeal>summary::-webkit-details-marker {
+  display: none;
+}
+
+.sub-appeal>summary:hover {
+  background: var(--surface-2);
+}
+
+.sub-appeal[open]>summary {
+  background: var(--surface-2);
+}
+
+.sub-appeal[open]>summary .expand-icon {
+  transform: rotate(90deg);
+}
+
+.sub-col-date {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sub-col-category {
+  display: flex;
+  align-items: center;
+}
+
+.sub-col-appellant {
   font-size: 0.875rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Shared expand icon */
+.expand-icon {
+  color: var(--text-subtle);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
 }
 
 /* Grounds badge */
@@ -308,11 +390,11 @@ body {
   border: 1px solid var(--border);
 }
 
-/* Expand detail panel */
+/* ── Detail panel (inside sub-appeal) ── */
 .appeal-detail {
-  padding: 1.25rem 1.25rem 1.25rem 3rem;
+  padding: 1.25rem 1.25rem 1.25rem 3.75rem;
   background: var(--bg);
-  border-bottom: 1px solid var(--border-light);
+  border-top: 1px solid var(--border-light);
   animation: slideDown 150ms ease;
 }
 

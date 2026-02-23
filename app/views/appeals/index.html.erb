@@ -33,72 +33,93 @@ end %>
     <h1 class="page-title">
       Housing Appeals<% if @selected_city %> &mdash; <%= @selected_city.name %><% end %>
     </h1>
-    <% if @total_count > 0 %>
-      <span class="count-badge"><%= @total_count %> total</span>
+    <% if @total_appeals_count > 0 %>
+      <span class="count-badge"><%= @total_appeals_count %> appeal<%= "s" if @total_appeals_count != 1 %></span>
     <% end %>
   </div>
 
   <div class="appeals-table-wrap">
+    <%# Column header for the outer (address) level %>
     <div class="appeals-thead">
       <span class="col-address">Address</span>
-      <span class="col-date">Date Filed</span>
-      <span class="col-category">Category</span>
-      <span class="col-appellant">Appellant</span>
+      <span class="col-recent-date">Most Recent</span>
+      <span class="col-group-count"></span>
     </div>
 
-    <% if @appeals.any? %>
-      <% @appeals.each do |appeal| %>
-        <details class="appeal-row" id="appeal-<%= appeal.id %>">
+    <% if @grouped_appeals.any? %>
+      <% @grouped_appeals.each do |address, appeals| %>
+        <%# Auto-expand single-appeal groups so the nested UI isn't annoying %>
+        <details class="appeal-group" id="group-<%= appeals.first.id %>" <%= "open" if appeals.one? %>>
           <summary>
             <svg class="expand-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span class="col-address addr-text">
-              <%= appeal.project_address.presence || appeal.project_name.presence || "Address unknown" %>
-            </span>
-            <span class="col-date">
-              <%= appeal.filed_date&.strftime("%-d %b %Y") || "—" %>
-            </span>
-            <span class="col-category">
-              <span class="badge <%= badge_class(appeal.grounds_category) %>">
-                <%= appeal.grounds_category&.humanize || "Other" %>
-              </span>
-            </span>
-            <span class="col-appellant">
-              <%= appeal.appellant_name.presence || "—" %>
+            <span class="col-address addr-text"><%= address %></span>
+            <span class="col-recent-date"><%= appeals.first.filed_date&.strftime("%-d %b %Y") || "—" %></span>
+            <span class="col-group-count">
+              <% if appeals.many? %>
+                <span class="group-count-pill"><%= appeals.count %></span>
+              <% end %>
             </span>
           </summary>
 
-          <div class="appeal-detail">
-            <div class="detail-grid">
-              <% if appeal.description.present? %>
-                <div class="detail-field full">
-                  <label>Summary</label>
-                  <p><%= appeal.description %></p>
-                </div>
-              <% end %>
-
-              <% if appeal.grounds_description.present? %>
-                <div class="detail-field full">
-                  <label>Grounds</label>
-                  <p><%= appeal.grounds_description %></p>
-                </div>
-              <% end %>
-
-              <% if appeal.reference_number.present? %>
-                <div class="detail-field">
-                  <label>Reference Number</label>
-                  <p><%= appeal.reference_number %></p>
-                </div>
-              <% end %>
-
-              <% if appeal.apn.present? %>
-                <div class="detail-field">
-                  <label>APN</label>
-                  <p><%= appeal.apn %></p>
-                </div>
-              <% end %>
+          <div class="group-body">
+            <%# Sub-column header %>
+            <div class="sub-thead">
+              <span></span><%# icon placeholder %>
+              <span>Date Filed</span>
+              <span>Category</span>
+              <span>Appellant</span>
             </div>
+
+            <% appeals.each do |appeal| %>
+              <details class="sub-appeal" id="appeal-<%= appeal.id %>">
+                <summary>
+                  <svg class="expand-icon" width="12" height="12" viewBox="0 0 14 14" fill="none">
+                    <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="sub-col-date"><%= appeal.filed_date&.strftime("%-d %b %Y") || "—" %></span>
+                  <span class="sub-col-category">
+                    <span class="badge <%= badge_class(appeal.grounds_category) %>">
+                      <%= appeal.grounds_category&.humanize || "Other" %>
+                    </span>
+                  </span>
+                  <span class="sub-col-appellant"><%= appeal.appellant_name.presence || "—" %></span>
+                </summary>
+
+                <div class="appeal-detail">
+                  <div class="detail-grid">
+                    <% if appeal.description.present? %>
+                      <div class="detail-field full">
+                        <label>Summary</label>
+                        <p><%= appeal.description %></p>
+                      </div>
+                    <% end %>
+
+                    <% if appeal.grounds_description.present? %>
+                      <div class="detail-field full">
+                        <label>Grounds</label>
+                        <p><%= appeal.grounds_description %></p>
+                      </div>
+                    <% end %>
+
+                    <% if appeal.reference_number.present? %>
+                      <div class="detail-field">
+                        <label>Reference Number</label>
+                        <p><%= appeal.reference_number %></p>
+                      </div>
+                    <% end %>
+
+                    <% if appeal.apn.present? %>
+                      <div class="detail-field">
+                        <label>APN</label>
+                        <p><%= appeal.apn %></p>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </details>
+            <% end %>
           </div>
         </details>
       <% end %>
