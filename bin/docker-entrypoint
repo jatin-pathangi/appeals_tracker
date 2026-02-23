@@ -1,20 +1,14 @@
 #!/bin/bash -e
 
-# If SOLID_QUEUE_WORKER is set, start the background job processor instead.
-if [ "${SOLID_QUEUE_WORKER}" = "true" ]; then
-  # SolidQueue tables live in db/queue_schema.rb (not migrations), so db:migrate
-  # won't create them. Load the schema only if tables are missing.
+# If running the rails server then create or migrate existing database,
+# and ensure SolidQueue tables exist (they use db/queue_schema.rb, not migrations).
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  ./bin/rails db:prepare
   bundle exec rails runner "
     unless ActiveRecord::Base.connection.table_exists?('solid_queue_jobs')
       load Rails.root.join('db/queue_schema.rb')
     end
   "
-  exec bundle exec rails solid_queue:start
-fi
-
-# If running the rails server then create or migrate existing database.
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
 fi
 
 exec "${@}"
