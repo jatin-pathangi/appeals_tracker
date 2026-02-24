@@ -88,35 +88,104 @@ end %>
                 </summary>
 
                 <div class="appeal-detail">
-                  <div class="detail-grid">
-                    <% if appeal.description.present? %>
-                      <div class="detail-field full">
-                        <label>Summary</label>
-                        <p><%= appeal.description %></p>
-                      </div>
-                    <% end %>
+                  <% hearings = appeal.housing_appeal_hearings.sort_by { |h| h.hearing_date }.reverse %>
 
-                    <% if appeal.grounds_description.present? %>
-                      <div class="detail-field full">
-                        <label>Grounds</label>
-                        <p><%= appeal.grounds_description %></p>
-                      </div>
-                    <% end %>
+                  <% if hearings.any? %>
+                    <%# Hearing timeline %>
+                    <div class="hearing-timeline">
+                      <% hearings.each_with_index do |hearing, i| %>
+                        <details class="hearing-entry <%= hearing.substantive? ? "hearing-substantive" : "hearing-minor" %>">
+                          <summary class="hearing-meta">
+                            <svg class="expand-icon" width="12" height="12" viewBox="0 0 14 14" fill="none">
+                              <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="hearing-date"><%= hearing.hearing_date.strftime("%-d %b %Y") %></span>
+                            <span class="hearing-type-chip hearing-type-<%= hearing.hearing_type %>">
+                              <%= hearing.hearing_type.humanize %>
+                            </span>
+                          </summary>
 
-                    <% if appeal.reference_number.present? %>
-                      <div class="detail-field">
-                        <label>Reference Number</label>
-                        <p><%= appeal.reference_number %></p>
-                      </div>
-                    <% end %>
+                          <div class="hearing-body-content">
+                            <% if hearing.pdf_url_with_page %>
+                              <div class="hearing-action-link">
+                                <%= link_to "View Agenda ↗", hearing.pdf_url_with_page,
+                                      target: "_blank", rel: "noopener",
+                                      class: "agenda-link" %>
+                              </div>
+                            <% end %>
+                            
+                            <% if hearing.description.present? && hearing.hearing_type != "communication" %>
+                              <p class="hearing-body"><%= hearing.description %></p>
+                            <% end %>
+                            <% if hearing.grounds_description.present? && hearing.hearing_type != "communication" %>
+                              <p class="hearing-grounds"><strong>Grounds:</strong> <%= hearing.grounds_description %></p>
+                            <% end %>
+                            <% if hearing.action_taken.present? %>
+                              <p class="hearing-action"><strong>Action:</strong> <%= hearing.action_taken %></p>
+                            <% end %>
+                          </div>
+                        </details>
+                      <% end %>
+                    </div>
 
-                    <% if appeal.apn.present? %>
-                      <div class="detail-field">
-                        <label>APN</label>
-                        <p><%= appeal.apn %></p>
-                      </div>
-                    <% end %>
-                  </div>
+                    <%# Reference / APN below timeline %>
+                    <div class="detail-grid detail-meta">
+                      <% if appeal.reference_number.present? %>
+                        <div class="detail-field">
+                          <label>Reference Number</label>
+                          <p><%= appeal.reference_number %></p>
+                        </div>
+                      <% end %>
+                      <% if appeal.apn.present? %>
+                        <div class="detail-field">
+                          <label>APN</label>
+                          <p><%= appeal.apn %></p>
+                        </div>
+                      <% end %>
+                    </div>
+
+                  <% else %>
+                    <%# Fallback for older records with no hearings %>
+                    <div class="detail-grid">
+                      <% if appeal.description.present? %>
+                        <div class="detail-field full">
+                          <label>Summary</label>
+                          <p><%= appeal.description %></p>
+                        </div>
+                      <% end %>
+                      <% if appeal.grounds_description.present? %>
+                        <div class="detail-field full">
+                          <label>Grounds</label>
+                          <p><%= appeal.grounds_description %></p>
+                        </div>
+                      <% end %>
+                      <% if appeal.reference_number.present? %>
+                        <div class="detail-field">
+                          <label>Reference Number</label>
+                          <p><%= appeal.reference_number %></p>
+                        </div>
+                      <% end %>
+                      <% if appeal.apn.present? %>
+                        <div class="detail-field">
+                          <label>APN</label>
+                          <p><%= appeal.apn %></p>
+                        </div>
+                      <% end %>
+                      <% pdf_url = appeal.agenda_item&.council_meeting&.pdf_url %>
+                      <% if pdf_url.present? %>
+                        <% page_anchor = appeal.page_number ? "#page=#{appeal.page_number}" : "" %>
+                        <div class="detail-field full">
+                          <label>Full Agenda</label>
+                          <p>
+                            <%= link_to "View Agenda PDF#{appeal.page_number ? " (p. #{appeal.page_number})" : ""}",
+                                  "#{pdf_url}#{page_anchor}",
+                                  target: "_blank", rel: "noopener",
+                                  class: "agenda-link" %>
+                          </p>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
                 </div>
               </details>
             <% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_22_023542) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_24_002636) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_023542) do
     t.index ["status"], name: "index_council_meetings_on_status"
   end
 
+  create_table "housing_appeal_hearings", force: :cascade do |t|
+    t.text "action_taken"
+    t.bigint "council_meeting_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.text "grounds_description"
+    t.string "hearing_type", default: "other", null: false
+    t.bigint "housing_appeal_id", null: false
+    t.integer "page_number"
+    t.datetime "updated_at", null: false
+    t.index ["council_meeting_id"], name: "index_housing_appeal_hearings_on_council_meeting_id"
+    t.index ["housing_appeal_id", "council_meeting_id"], name: "idx_hearings_appeal_meeting", unique: true
+    t.index ["housing_appeal_id"], name: "index_housing_appeal_hearings_on_housing_appeal_id"
+  end
+
   create_table "housing_appeals", force: :cascade do |t|
     t.bigint "agenda_item_id"
     t.string "apn"
@@ -105,6 +120,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_023542) do
     t.date "filed_date"
     t.string "grounds_category"
     t.text "grounds_description"
+    t.integer "page_number"
     t.string "project_address"
     t.string "project_name"
     t.string "reference_number"
@@ -123,6 +139,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_023542) do
   add_foreign_key "agenda_items", "council_meetings"
   add_foreign_key "agenda_sources", "cities"
   add_foreign_key "council_meetings", "agenda_sources"
+  add_foreign_key "housing_appeal_hearings", "council_meetings"
+  add_foreign_key "housing_appeal_hearings", "housing_appeals"
   add_foreign_key "housing_appeals", "agenda_items"
   add_foreign_key "housing_appeals", "cities"
 end

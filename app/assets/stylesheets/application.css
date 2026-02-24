@@ -436,6 +436,125 @@ body {
   grid-column: 1 / -1;
 }
 
+.hearing-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.hearing-entry {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+  /* slightly visible surface */
+  overflow: hidden;
+}
+
+.hearing-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  /* hide default disclosure marker */
+  user-select: none;
+}
+
+.hearing-meta::-webkit-details-marker {
+  display: none;
+}
+
+.hearing-meta:hover {
+  background: var(--surface-2);
+}
+
+.hearing-entry[open]>.hearing-meta {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.hearing-entry[open]>.hearing-meta .expand-icon {
+  transform: rotate(90deg);
+}
+
+.hearing-date {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.hearing-type-chip {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+.hearing-type-initial {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.hearing-type-decision {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.hearing-type-continued {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.hearing-type-filing,
+.hearing-type-communication {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+}
+
+.hearing-body-content {
+  padding: 1rem 1rem 1.25rem 2.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.hearing-body-content p {
+  margin-bottom: 0.75rem;
+}
+
+.hearing-body-content p:last-child {
+  margin-bottom: 0;
+}
+
+.hearing-action-link {
+  margin-top: 0.5rem;
+}
+
+.agenda-link {
+  color: var(--accent);
+  font-size: 0.875rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.agenda-link:hover {
+  text-decoration: underline;
+}
+
+.agenda-link::after {
+  content: " ↗";
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
 /* Empty state */
 .empty-state {
   padding: 4rem 2rem;

@@ -7,7 +7,10 @@ class AppealsController < ApplicationController
     @current_page = [ params.fetch(:page, 1).to_i, 1 ].max
 
     if @selected_city
-      all_appeals = @selected_city.housing_appeals.order(filed_date: :desc).to_a
+      all_appeals = @selected_city.housing_appeals
+                                   .includes(housing_appeal_hearings: :council_meeting,
+                                             agenda_item: :council_meeting)
+                                   .order(filed_date: :desc).to_a
 
       # Group by address; order is preserved (most-recent appeal first per group,
       # groups appear in the order of their most-recent appeal).

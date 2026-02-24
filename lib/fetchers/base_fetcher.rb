@@ -46,23 +46,22 @@ module Fetchers
 
     # Paginates through listing pages using the standard ?page=N convention,
     # yielding [Date, pdf_url] for each agenda found.
-    # Respects a "max_pages" key in the agenda_source config.
+    # Stops naturally when a page has no rows within the months_back window.
     def each_agenda_listing
+      months_back = config.fetch("months_back", 6).to_i
+      oldest_date = Date.today << months_back
       page = 0
 
       loop do
         url = page.zero? ? "#{base_url}#{listing_path}" : "#{base_url}#{listing_path}?page=#{page}"
         Rails.logger.info "[#{self.class.name}] Scraping listing page #{page}: #{url}"
 
-        doc = Nokogiri::HTML(fetch_html(url))
-        rows = parse_listing_page(doc)
+        doc  = Nokogiri::HTML(fetch_html(url))
+        rows = parse_listing_page(doc).select { |date, _| date >= oldest_date }
 
         break if rows.empty?
 
         rows.each { |date, pdf_url| yield date, pdf_url }
-
-        max_pages = config.fetch("max_pages", nil)
-        break if max_pages && page >= max_pages.to_i - 1
 
         page += 1
       end
