@@ -3,7 +3,7 @@ class AppealsController < ApplicationController
 
   def index
     @cities = City.order(:name)
-    @selected_city = City.find_by(id: params[:city_id]) || @cities.first
+    @selected_city = City.find_by(id: params[:city_id]) || City.find_by(slug: "san-francisco") || @cities.first
     @current_page = [ params.fetch(:page, 1).to_i, 1 ].max
 
     if @selected_city
