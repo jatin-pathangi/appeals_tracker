@@ -79,13 +79,32 @@ module Fetchers
     end
 
     def download_and_attach_pdf(meeting, url)
-      response = http_get(url)
       filename = "#{meeting.meeting_date.strftime("%Y%m%d")}_#{city.slug}_agenda.pdf"
-      meeting.agenda_pdf.attach(
-        io: StringIO.new(response.body),
-        filename: filename,
-        content_type: "application/pdf"
-      )
+
+      Tempfile.create([ filename, ".pdf" ]) do |tempfile|
+        tempfile.binmode
+
+        # Stream the download directly to disk
+        uri = URI.parse(url)
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
+          request = Net::HTTP::Get.new(uri.request_uri)
+          request["User-Agent"] = "AppealTracker/1.0"
+
+          http.request(request) do |response|
+            response.read_body do |chunk|
+              tempfile.write(chunk)
+            end
+          end
+        end
+
+        tempfile.rewind
+
+        meeting.agenda_pdf.attach(
+          io: tempfile,
+          filename: filename,
+          content_type: "application/pdf"
+        )
+      end
     end
 
     def process_with_gemini(meeting)

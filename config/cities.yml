@@ -1,0 +1,12 @@
+---
+san-francisco:
+  name: "San Francisco"
+  county: "San Francisco County"
+  fetcher_class: "Fetchers::SanFranciscoFetcher"
+  agenda_url: "https://sfbos.org/meetings/full-board-meetings"
+
+berkeley:
+  name: "Berkeley"
+  county: "Alameda County"
+  fetcher_class: "Fetchers::BerkeleyFetcher"
+  agenda_url: "https://berkeleyca.gov/your-government/city-council/city-council-agendas"

@@ -88,7 +88,11 @@ class GeminiAgendaProcessor
   def upload_pdf_to_gemini
     @temp_file = Tempfile.new([ "agenda_#{@meeting.id}", ".pdf" ])
     @temp_file.binmode
-    @temp_file.write(@meeting.agenda_pdf.download)
+
+    # Stream the file from ActiveStorage directly to disk to avoid buffering massive PDFs in memory
+    @meeting.agenda_pdf.download do |chunk|
+      @temp_file.write(chunk)
+    end
     @temp_file.flush
 
     Rails.logger.info "[GeminiAgendaProcessor] Uploading PDF for #{city.name} meeting #{@meeting.meeting_date}"

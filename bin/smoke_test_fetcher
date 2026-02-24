@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+require_relative "../config/environment"
+
+# Usage: bin/smoke_test_fetcher [san-francisco|berkeley] [months_back]
+# Example: bin/smoke_test_fetcher berkeley 3
+
+city_slug = ARGV[0]
+months_back = ARGV[1]&.to_i || 3
+
+unless city_slug
+  puts "Usage: bin/smoke_test_fetcher [san-francisco|berkeley] [months_back]"
+  puts "Example: bin/smoke_test_fetcher berkeley 3"
+  exit 1
+end
+
+require "yaml"
+CITY_CONFIGS = YAML.load_file(Rails.root.join("config", "cities.yml"))
+
+config = CITY_CONFIGS[city_slug]
+unless config
+  puts "Unknown city slug: #{city_slug}"
+  puts "Supported cities: #{CITY_CONFIGS.keys.join(', ')}"
+  exit 1
+end
+
+puts "=== Smoke Test: #{config['name']} ==="
+puts "Truncating old data for #{config['name']}..."
+
+city = City.find_or_create_by!(
+  name: config["name"],
+  slug: city_slug,
+  county: config["county"],
+  state_code: "CA"
+)
+
+# Destroy old meetings and appeals for this city to ensure a clean run
+city.housing_appeals.destroy_all
+city.agenda_sources.each do |source|
+  source.council_meetings.destroy_all
+end
+
+source = city.agenda_sources.find_or_create_by!(
+  fetcher_class: config["fetcher_class"],
+  agenda_url: config["agenda_url"],
+  active: true
+)
+
+puts "Updating configuration to scrape #{months_back} month(s) back..."
+source.update!(config: { "months_back" => months_back })
+
+puts "Starting fetcher..."
+source.fetcher.fetch
+
+puts "\n=== Results (Status Check) ==="
+appeals = HousingAppeal.where(city: city).order(filed_date: :desc)
+if appeals.empty?
+  puts "No appeals found for #{config['name']} in the last #{months_back} months."
+else
+  appeals.each do |a|
+    puts "#{a.id}: [#{a.status.upcase}#{a.decision ? " - #{a.decision.upcase}" : ""}] #{a.reference_number} - #{a.project_address}"
+    a.housing_appeal_hearings.sort_by(&:hearing_date).each do |h|
+      puts "  [#{h.hearing_date}] #{h.hearing_type}: #{h.action_taken || "No action listed"}"
+    end
+  end
+end
