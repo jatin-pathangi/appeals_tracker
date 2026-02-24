@@ -6,6 +6,21 @@ module Fetchers
     def listing_path = "/your-government/city-council/city-council-agendas"
 
     # Berkeley's agenda page is a single table (no pagination).
+    # We override the base fetcher's loop so it doesn't try to paginate and get stuck
+    # processing the same page repeatedly.
+    def each_agenda_listing
+      months_back = config.fetch("months_back", 6).to_i
+      oldest_date = Date.today << months_back
+
+      url = "#{base_url}#{listing_path}"
+      Rails.logger.info "[#{self.class.name}] Scraping single listing page: #{url}"
+
+      doc  = Nokogiri::HTML(fetch_html(url))
+      rows = parse_listing_page(doc).select { |date, _| date >= oldest_date }
+
+      rows.each { |date, pdf_url| yield date, pdf_url }
+    end
+
     # Each <tr> contains:
     #   td.council-meeting-name  → link text "City Council YYYY-MM-DD - Regular/Special/..."
     #   td.council-meeting-minutes → one or more PDF links
