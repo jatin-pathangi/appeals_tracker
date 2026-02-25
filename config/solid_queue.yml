@@ -10,7 +10,7 @@ default: &default
       polling_interval: 1
 
     - queues: [ fetchers ]
-      threads: 2
+      threads: 1
       polling_interval: 5             # fetcher jobs are slow (HTTP + Gemini); poll less aggressively
 
 production:

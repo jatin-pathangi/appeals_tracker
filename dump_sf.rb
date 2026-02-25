@@ -2,6 +2,8 @@ require_relative "config/environment"
 
 sf = City.find_by!(slug: "san-francisco")
 
+puts "HousingAppealHearing.destroy_all"
+puts "HousingAppeal.destroy_all"
 puts "sf = City.find_by!(slug: 'san-francisco')"
 puts "sf.housing_appeals.destroy_all"
 puts ""
@@ -15,12 +17,13 @@ sf.housing_appeals.each do |appeal|
   puts "  grounds_description: #{appeal.grounds_description.inspect},"
   puts "  status: #{appeal.status.inspect},"
   puts "  decision: #{appeal.decision.inspect},"
-  puts "  filed_date: #{appeal.filed_date.inspect}"
+  puts "  filed_date: #{appeal.filed_date&.to_s.inspect}"
   puts ")"
 
   appeal.housing_appeal_hearings.each do |hearing|
+    puts "meeting = AgendaSource.find_by!(city: sf, fetcher_class: 'Fetchers::SanFranciscoFetcher').council_meetings.find_or_create_by!(meeting_date: '#{hearing.council_meeting.meeting_date}', meeting_type: 'regular')"
     puts "appeal.housing_appeal_hearings.create!("
-    puts "  council_meeting_id: AgendaSource.find_by(city: sf, fetcher_class: 'Fetchers::SanFranciscoFetcher').council_meetings.find_or_create_by!(meeting_date: #{hearing.council_meeting.meeting_date.inspect}, meeting_type: 'regular').id,"
+    puts "  council_meeting_id: meeting.id,"
     puts "  hearing_type: #{hearing.hearing_type.inspect},"
     puts "  action_taken: #{hearing.action_taken.inspect},"
     puts "  description: #{hearing.description.inspect},"
