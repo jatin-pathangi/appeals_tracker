@@ -21,8 +21,6 @@ module Fetchers
 
         if meeting.new_record? || !meeting.agenda_pdf.attached?
           download_and_attach_pdf(meeting, pdf_url)
-          meeting.fetched_at = Time.current
-          meeting.save!
           process_with_gemini(meeting)
           results << meeting
         elsif meeting.status == "pending"
@@ -104,6 +102,8 @@ module Fetchers
           filename: filename,
           content_type: "application/pdf"
         )
+        meeting.fetched_at = Time.current
+        meeting.save!
       end
     end
 
