@@ -95,15 +95,47 @@ class GeminiAgendaProcessor
     end
     @temp_file.flush
 
-    Rails.logger.info "[GeminiAgendaProcessor] Uploading PDF for #{city.name} meeting #{@meeting.meeting_date}"
+    Rails.logger.info "[GeminiAgendaProcessor] Uploading PDF for #{city.name} meeting #{@meeting.meeting_date} via Resumable API"
 
-    @client.files.upload(
-      file: @temp_file.path,
-      config: {
-        mime_type: "application/pdf",
-        display_name: "#{city.name} Agenda #{@meeting.meeting_date}"
-      }
-    )
+    # 1. Start resumable session
+    uri = URI("https://generativelanguage.googleapis.com/upload/v1beta/files?key=#{ENV['GEMINI_API_KEY']}")
+    req = Net::HTTP::Post.new(uri)
+    req["X-Goog-Upload-Protocol"] = "resumable"
+    req["X-Goog-Upload-Command"] = "start"
+
+    metadata = { file: { display_name: "#{city.name} Agenda #{@meeting.meeting_date}" } }
+    req["Content-Type"] = "application/json"
+    req.body = metadata.to_json
+
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE) { |http| http.request(req) }
+    raise "Failed to start Gemini upload session: #{res.body}" unless res.is_a?(Net::HTTPSuccess)
+
+    upload_url = res["x-goog-upload-url"]
+
+    # 2. Upload file content explicitly as a stream
+    upload_uri = URI(upload_url)
+    upload_req = Net::HTTP::Post.new(upload_uri)
+    upload_req["Content-Length"] = @temp_file.size.to_s
+    upload_req["X-Goog-Upload-Offset"] = "0"
+    upload_req["X-Goog-Upload-Command"] = "upload, finalize"
+
+    # We must explicitly open the file again so Net::HTTP can iterate over it natively
+    # instead of the Gemini SDK calling `.read` and buffering it into RAM.
+    File.open(@temp_file.path, "rb") do |file_stream|
+      upload_req.body_stream = file_stream
+      res = Net::HTTP.start(upload_uri.hostname, upload_uri.port, use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
+        http.request(upload_req)
+      end
+
+      raise "Failed to upload file chunk: #{res.body}" unless res.is_a?(Net::HTTPSuccess)
+
+      # The API returns the File metadata from the finalizing chunk
+      response_data = JSON.parse(res.body)
+
+      # Since we bypassed the SDK builder, we need to create a dummy object matching the SDK's expected interface
+      # for the extraction step to pass the URI correctly to `generate_content`.
+      Struct.new(:name, :uri).new(response_data.dig("file", "name"), response_data.dig("file", "uri"))
+    end
   end
 
   # Sends the uploaded file + prompt to Gemini and returns parsed array of appeal hashes.
