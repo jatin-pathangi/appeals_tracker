@@ -82,18 +82,8 @@ module Fetchers
       Tempfile.create([ filename, ".pdf" ]) do |tempfile|
         tempfile.binmode
 
-        # Stream the download directly to disk
-        uri = URI.parse(url)
-        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
-          request = Net::HTTP::Get.new(uri.request_uri)
-          request["User-Agent"] = "AppealTracker/1.0"
-
-          http.request(request) do |response|
-            response.read_body do |chunk|
-              tempfile.write(chunk)
-            end
-          end
-        end
+        # Stream the download directly to disk, following redirects
+        stream_download(url, tempfile)
 
         tempfile.rewind
 
@@ -133,6 +123,29 @@ module Fetchers
       when Net::HTTPSuccess    then response
       when Net::HTTPRedirection then http_get(response["Location"], limit - 1)
       else raise "HTTP #{response.code} fetching #{url}"
+      end
+    end
+
+    def stream_download(url, tempfile, limit = 10)
+      raise "Too many redirects fetching #{url}" if limit.zero?
+
+      uri = URI.parse(url)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request["User-Agent"] = "AppealTracker/1.0"
+
+        http.request(request) do |response|
+          case response
+          when Net::HTTPSuccess
+            response.read_body do |chunk|
+              tempfile.write(chunk)
+            end
+          when Net::HTTPRedirection
+            stream_download(response["Location"] || response["location"], tempfile, limit - 1)
+          else
+            raise "HTTP #{response.code} downloading #{url}"
+          end
+        end
       end
     end
 

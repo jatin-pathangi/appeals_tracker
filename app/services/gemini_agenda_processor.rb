@@ -102,8 +102,14 @@ class GeminiAgendaProcessor
     req = Net::HTTP::Post.new(uri)
     req["X-Goog-Upload-Protocol"] = "resumable"
     req["X-Goog-Upload-Command"] = "start"
+    req["X-Goog-Upload-Header-Content-Type"] = "application/pdf"
 
-    metadata = { file: { display_name: "#{city.name} Agenda #{@meeting.meeting_date}" } }
+    metadata = {
+      file: {
+        display_name: "#{city.name} Agenda #{@meeting.meeting_date}",
+        mimeType: "application/pdf"
+      }
+    }
     req["Content-Type"] = "application/json"
     req.body = metadata.to_json
 
@@ -132,9 +138,11 @@ class GeminiAgendaProcessor
       # The API returns the File metadata from the finalizing chunk
       response_data = JSON.parse(res.body)
 
-      # Since we bypassed the SDK builder, we need to create a dummy object matching the SDK's expected interface
       # for the extraction step to pass the URI correctly to `generate_content`.
-      Struct.new(:name, :uri).new(response_data.dig("file", "name"), response_data.dig("file", "uri"))
+      Google::Genai::Types::File.new(
+        name: response_data.dig("file", "name"),
+        uri: response_data.dig("file", "uri")
+      )
     end
   end
 
